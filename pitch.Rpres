@@ -3,6 +3,8 @@ Neonatal Sepsis Calculator
 author: Solomon Javitt
 date: 9/2015
 
+Created as part of Coursera/John's Hopkins Data Science Specialization
+
 What is Neonatal Sepsis?
 ========================================================
 incremental:TRUE
