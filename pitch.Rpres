@@ -1,0 +1,75 @@
+Neonatal Sepsis Calculator
+========================================================
+author: Solomon Javitt
+date: 9/2015
+
+What is Neonatal Sepsis?
+========================================================
+incremental:TRUE
+
+Blood stream infection in neonates (=newborn babies). There are both early forms (start less than 3 days) and late.  Here we will discuss early.
+
+This is a rare but very serious disease that often can lead to death or lifelong disability.
+
+Problem: Diagnosing neonate with sepsis can be tough. The babies when they are born often seem fine.
+
+Doctors have to decide which neonates have a high enough risk of sepsis that it's important enough to take a blood test or even start antibiotics.
+
+
+What do we know?
+========================================================
+- We know of some risk factors but no single risk factor makes a very good prediction.
+- Humans (including doctors) are very bad at rationally evaluating low-risk events especially with multiple risk-factors
+- Researchers at Harvard and Kaiser Permanente came up with a prediction model that uses the risk factors to calculate the overall risk (see [here](http://www.dor.kaiser.org/external/DORExternal/research/infectionprobabilitycalculator.aspx))
+- This project is an implementation of the risk model using Shiny in R which provides a more user friendly interface.
+
+Example
+========================================================
+Input risk factors
+```{r}
+
+ga.w <- 35             ## Gestational Age (weeks)
+mat.fev <- 101         ## Highest Maternal Temp in F
+GBS.stat <- "Positive" ## GBS Status
+abx <- "None"          ## Antibiotic treatment during labor
+ROM.Time <- 60         ## Rupture of Membranes time
+```
+
+Output
+``` {r echo=FALSE, }
+
+#GBS.stat <- factor(GBS, levels=c(1,2,3), labels=c("Unkown", "Positive", "Negative"))
+#abx <- factor(Antibiotic.Treatment, levels=c(1,2,3), labels=c("None", "GBS specific", "Broad Spectrum"))
+abx.t <-0
+rom.t <- (as.numeric(ROM.Time) + 5/60)^(0.2)    
+    
+    intercept <- 47.8398
+    coef.temp <- 0.8680
+    coef.ga <- -6.9325
+    coef.ga2 <- 0.0877
+    coef.rom <- 1.2256
+    coef.iap1 <- -1.0488
+    coef.iap2 <- -1.1861
+    coef.gbspos <- 0.5771
+    coef.gbsu <- 0.0427
+    int.adj <- -7.128
+    
+    b <- intercept + coef.temp*mat.fev + coef.ga*ga.w + coef.ga2*ga.w^2 + coef.rom*rom.t +
+      coef.iap1 * as.numeric(abx=="GBS Specific" && abx.t>=4) + 
+      coef.iap1 * as.numeric(abx=="Broad Spectrum" && abx.t<4) +
+      coef.iap2 * as.numeric(abx=="Broad Spectrum" && abx.t>=4) +
+      coef.gbspos * as.numeric(GBS.stat == "Positive") +
+      coef.gbsu   * as.numeric(GBS.stat == "Unkown") + int.adj
+    p <- 1/(1+exp(-b))
+    paste("Calculated risk:", format(round(p,3), nsmall=3),
+          "or", floor(p*1000), "per 1000 live births")
+
+```
+
+Summary
+=================
+
+The Shiny app looks **much** nicer!
+
+Check it out here:  
+https://shlomoj.shinyapps.io/DDP-proj
